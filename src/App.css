@@ -1,0 +1,43 @@
+.app-shell {
+  width: min(760px, 100% - 3rem);
+  margin: 8vh auto;
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: linear-gradient(160deg, var(--color-panel), var(--color-panel-alt));
+  box-shadow: 0 24px 60px var(--color-shadow);
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  color: var(--color-accent);
+}
+
+h1 {
+  margin: 0.6rem 0;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: var(--color-heading);
+}
+
+.copy {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.checklist {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  margin: 0.5rem 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  color: var(--color-heading);
+  background: var(--color-chip);
+}
