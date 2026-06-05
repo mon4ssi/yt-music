@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('App', () => {
-  it('renders scaffold status heading', () => {
+  it('renders loading state initially', () => {
     render(<App />)
-    expect(screen.getByRole('heading', { name: 'Scaffold Ready' })).toBeInTheDocument()
+    expect(screen.getByText('Loading YouTube Music...')).toBeInTheDocument()
   })
 })
