@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('App', () => {
-  it('renders loading state initially', () => {
+  it('renders splash text', () => {
     render(<App />)
     expect(screen.getByText('Loading YouTube Music...')).toBeInTheDocument()
   })

@@ -1,3 +1,5 @@
+mod playback;
+
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::Manager;
@@ -35,6 +37,7 @@ pub fn run() {
       tauri_plugin_autostart::MacosLauncher::LaunchAgent,
       None,
     ))
+    .invoke_handler(tauri::generate_handler![playback::update_playback_state])
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -68,6 +71,18 @@ pub fn run() {
           log::warn!("failed to register shortcut {shortcut}: {e}");
         }
       }
+
+      let handle = app.handle().clone();
+      std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        if let Some(window) = handle.get_webview_window("main") {
+          if let Err(e) = window.eval(playback::CONTENT_SCRIPT) {
+            log::warn!("failed to inject playback script: {e}");
+          } else {
+            log::info!("playback content script injected");
+          }
+        }
+      });
 
       Ok(())
     })
