@@ -1,6 +1,14 @@
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  let app = tauri::Builder::default()
+    .plugin(tauri_plugin_window_state::Builder::new().build())
+    .plugin(
+      tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        let _ = app.get_webview_window("main").map(|w| w.set_focus());
+      }),
+    )
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -11,6 +19,8 @@ pub fn run() {
       }
       Ok(())
     })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    .build(tauri::generate_context!())
+    .expect("error while building tauri application");
+
+  app.run(|_handle, _event| {});
 }
