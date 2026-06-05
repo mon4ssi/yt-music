@@ -8,6 +8,8 @@
   "permissions": [
     "core:default",
     "window-state:default",
-    "global-shortcut:default"
+    "global-shortcut:default",
+    "notification:default",
+    "autostart:default"
   ]
 }
