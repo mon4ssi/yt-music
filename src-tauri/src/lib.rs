@@ -6,7 +6,7 @@ mod playback;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::{Emitter, Manager};
+use tauri::{Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
 
 const SETTINGS_FILE: &str = "settings.json";
@@ -64,6 +64,22 @@ pub fn run() {
     ])
     .setup(|app| {
       app.manage(std::sync::Mutex::new(bridge_health::BridgeHealthState::new()));
+
+      let user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36";
+      let main_url = "https://music.youtube.com".parse::<url::Url>().expect("invalid URL");
+      if let Err(e) = WebviewWindowBuilder::new(app, "main", WebviewUrl::External(main_url))
+        .title("YouTube Music")
+        .inner_size(1280.0, 800.0)
+        .min_inner_size(800.0, 500.0)
+        .user_agent(user_agent)
+        .on_navigation(|url| {
+          let allowed = ["music.youtube.com", "accounts.google.com", "accounts.youtube.com"];
+          url.host_str().is_some_and(|host| allowed.contains(&host))
+        })
+        .build()
+      {
+        log::warn!("failed to create main window: {e}");
+      }
 
       if cfg!(debug_assertions) {
         app.handle().plugin(

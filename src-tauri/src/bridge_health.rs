@@ -5,6 +5,7 @@ use tauri::{AppHandle, Manager};
 
 const STALE_THRESHOLD_SECS: u64 = 10;
 const RECOVERY_COOLDOWN_SECS: u64 = 30;
+const MAX_RECOVERY_ATTEMPTS: u64 = 5;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct BridgeHealthReport {
@@ -60,12 +61,16 @@ impl BridgeHealthState {
     }
 
     fn should_recover(&self) -> bool {
+        if self.recovery_attempts >= MAX_RECOVERY_ATTEMPTS {
+            return false;
+        }
         let bridge_dead = match self.last_heartbeat {
             Some(hb) => hb.elapsed().as_secs() > STALE_THRESHOLD_SECS,
             None => self.startup.elapsed().as_secs() > STALE_THRESHOLD_SECS,
         };
+        let backoff = RECOVERY_COOLDOWN_SECS * 2u64.pow(self.recovery_attempts as u32);
         let cooldown_ok = match self.last_recovery {
-            Some(rec) => rec.elapsed().as_secs() > RECOVERY_COOLDOWN_SECS,
+            Some(rec) => rec.elapsed().as_secs() > backoff,
             None => true,
         };
         bridge_dead && cooldown_ok
