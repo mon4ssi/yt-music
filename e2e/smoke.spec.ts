@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('renders YouTube Music iframe', async ({ page }) => {
+test('renders splash before navigation', async ({ page }) => {
   await page.goto('/')
-  const iframe = page.locator('iframe[title="YouTube Music"]')
-  await expect(iframe).toBeAttached()
-  await expect(iframe).toHaveAttribute('src', 'https://music.youtube.com')
+  await expect(page.getByText('Loading YouTube Music...')).toBeVisible()
 })
