@@ -31,19 +31,19 @@ function CommandPalette() {
   )
 
   const close = useCallback(() => {
-    getCurrentWindow().close()
+    getCurrentWindow().close().catch(console.error)
   }, [])
 
   const run = useCallback(
     (action: Action) => {
-      invoke(action.invokeCmd, action.invokeArgs ?? {})
+      invoke(action.invokeCmd, action.invokeArgs ?? {}).catch(console.error)
       close()
     },
     [close],
   )
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         close()
       } else if (e.key === 'ArrowDown') {
@@ -56,16 +56,17 @@ function CommandPalette() {
         e.preventDefault()
         if (filtered[selectedIdx]) run(filtered[selectedIdx])
       }
-    },
-    [close, filtered, selectedIdx, run],
-  )
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [close, filtered, selectedIdx, run])
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
   return (
-    <div className="palette-overlay" onKeyDown={handleKeyDown}>
+    <div className="palette-overlay">
       <input
         ref={inputRef}
         className="palette-input"
