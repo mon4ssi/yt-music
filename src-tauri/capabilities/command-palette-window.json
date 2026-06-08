@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "command-palette-window",
+  "description": "Permissions for the command palette overlay",
+  "windows": ["command-palette"],
+  "permissions": [
+    "core:event:default",
+    "store:default"
+  ]
+}
