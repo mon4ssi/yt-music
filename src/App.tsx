@@ -5,7 +5,10 @@ const YT_MUSIC_URL = 'https://music.youtube.com'
 
 function App() {
   useEffect(() => {
-    window.location.href = YT_MUSIC_URL
+    const isTauri = '__TAURI_INTERNALS__' in window
+    if (isTauri) {
+      window.location.href = YT_MUSIC_URL
+    }
   }, [])
 
   return (
