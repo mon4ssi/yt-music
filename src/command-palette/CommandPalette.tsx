@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import type { BridgeHealth } from '../bridge/types'
 
 interface Action {
   id: string
@@ -24,6 +25,15 @@ function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState('')
   const [selectedIdx, setSelectedIdx] = useState(0)
+  const [health, setHealth] = useState<BridgeHealth | null>(null)
+
+  useEffect(() => {
+    invoke<BridgeHealth>('get_bridge_health').then(setHealth).catch(console.error)
+  }, [])
+
+  const healthColor = health
+    ? health.status === 'healthy' ? 'var(--health-ok)' : health.status === 'starting' ? 'var(--health-warn)' : 'var(--health-err)'
+    : 'var(--health-warn)'
 
   const filtered = useMemo(
     () => ACTIONS.filter((a) => a.label.toLowerCase().includes(query.toLowerCase())),
@@ -109,6 +119,10 @@ function CommandPalette() {
           <li className="palette-empty">No matching commands</li>
         )}
       </ul>
+      <div className="palette-footer">
+        <span className="palette-health" style={{ backgroundColor: healthColor }} title={health ? `Bridge: ${health.status} (${health.lastHeartbeatMsAgo}ms ago)` : 'Loading...'} />
+        <span className="palette-version">v0.1.0</span>
+      </div>
     </div>
   )
 }

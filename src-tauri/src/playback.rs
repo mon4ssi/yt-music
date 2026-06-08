@@ -69,11 +69,20 @@ pub const CONTENT_SCRIPT: &str = r#"(function() {
     }
   }
 
+  function sendHeartbeat() {
+    try {
+      window.__TAURI_INTERNALS__.invoke('heartbeat');
+    } catch(e) {
+      /* IPC not ready yet */
+    }
+  }
+
   function boot() {
     if (ready) return;
     ready = true;
     setTimeout(send, 2000);
     setInterval(send, 1000);
+    setInterval(sendHeartbeat, 5000);
     new MutationObserver(send).observe(document.body, { childList: true, subtree: true });
   }
 

@@ -62,8 +62,12 @@
     --color-shadow-sm: rgba(0, 0, 0, 0.2);
     --color-shadow-md: rgba(0, 0, 0, 0.3);
     --color-shadow-lg: rgba(0, 0, 0, 0.5);
-    --color-shadow-heavy: rgba(0, 0, 0, 0.6);
-  }
+  --color-shadow-heavy: rgba(0, 0, 0, 0.6);
+
+  --health-ok: #22c55e;
+  --health-warn: #eab308;
+  --health-err: #ef4444;
+}
 }
 
 [data-theme="dark"] {
