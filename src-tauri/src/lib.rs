@@ -52,7 +52,8 @@ pub fn run() {
       previous_track,
       focus_main_window,
       toggle_mini_player,
-      navigate_to
+      navigate_to,
+      close_palette
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -172,4 +173,11 @@ fn toggle_mini_player(app: tauri::AppHandle) {
 #[tauri::command]
 fn navigate_to(app: tauri::AppHandle, page: String) {
   commands::navigate_to(&app, &page);
+}
+
+#[tauri::command]
+fn close_palette(app: tauri::AppHandle) {
+  if let Some(window) = app.get_webview_window("command-palette") {
+    let _ = window.close();
+  }
 }

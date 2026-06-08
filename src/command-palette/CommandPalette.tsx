@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
-import { getCurrentWindow } from '@tauri-apps/api/window'
 
 interface Action {
   id: string
@@ -31,7 +30,7 @@ function CommandPalette() {
   )
 
   const close = useCallback(() => {
-    getCurrentWindow().close().catch(console.error)
+    invoke('close_palette').catch(console.error)
   }, [])
 
   const run = useCallback(
