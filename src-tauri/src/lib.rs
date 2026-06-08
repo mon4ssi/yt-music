@@ -1,4 +1,5 @@
 mod commands;
+mod mini_player;
 mod playback;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -38,7 +39,14 @@ pub fn run() {
       tauri_plugin_autostart::MacosLauncher::LaunchAgent,
       None,
     ))
-    .invoke_handler(tauri::generate_handler![playback::update_playback_state])
+    .plugin(tauri_plugin_store::Builder::default().build())
+    .invoke_handler(tauri::generate_handler![
+      playback::update_playback_state,
+      toggle_playback,
+      next_track,
+      previous_track,
+      focus_main_window
+    ])
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -54,10 +62,21 @@ pub fn run() {
       let previous =
         MenuItem::with_id(app, "previous", "Previous Track", true, None::<&str>)?;
       let separator = PredefinedMenuItem::separator(app)?;
+      let toggle_mini = MenuItem::with_id(
+        app,
+        "mini_player",
+        "Toggle Mini-Player",
+        true,
+        None::<&str>,
+      )?;
+      let separator2 = PredefinedMenuItem::separator(app)?;
       let quit =
         MenuItem::with_id(app, "quit", "Quit YT Music", true, None::<&str>)?;
 
-      let menu = Menu::with_items(app, &[&play_pause, &next, &previous, &separator, &quit])?;
+      let menu = Menu::with_items(
+        app,
+        &[&play_pause, &next, &previous, &separator, &toggle_mini, &separator2, &quit],
+      )?;
 
       TrayIconBuilder::new().menu(&menu).build(app)?;
 
@@ -92,6 +111,7 @@ pub fn run() {
         "play_pause" => commands::execute(app, commands::PlaybackCommand::PlayPause),
         "next" => commands::execute(app, commands::PlaybackCommand::Next),
         "previous" => commands::execute(app, commands::PlaybackCommand::Previous),
+        "mini_player" => mini_player::create_or_toggle(app),
         "quit" => app.exit(0),
         _ => {}
       }
@@ -100,4 +120,28 @@ pub fn run() {
     .expect("error while building tauri application");
 
   app.run(|_handle, _event| {});
+}
+
+#[tauri::command]
+fn toggle_playback(app: tauri::AppHandle) {
+  commands::execute(&app, commands::PlaybackCommand::PlayPause);
+}
+
+#[tauri::command]
+fn next_track(app: tauri::AppHandle) {
+  commands::execute(&app, commands::PlaybackCommand::Next);
+}
+
+#[tauri::command]
+fn previous_track(app: tauri::AppHandle) {
+  commands::execute(&app, commands::PlaybackCommand::Previous);
+}
+
+#[tauri::command]
+fn focus_main_window(app: tauri::AppHandle) {
+  if let Some(window) = app.get_webview_window("main") {
+    let _ = window.show();
+    let _ = window.set_focus();
+  }
+  mini_player::close(&app);
 }

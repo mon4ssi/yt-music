@@ -1,0 +1,121 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mini-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 74px;
+  padding: 8px 12px;
+  background: rgba(30, 30, 30, 0.96);
+  border-radius: 10px;
+  margin: 3px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.mini-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #333;
+}
+
+.mini-thumb--empty {
+  background: #333;
+}
+
+.mini-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mini-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-artist {
+  font-size: 0.75rem;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.mini-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mini-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mini-btn--play {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.mini-btn--play:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mini-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.mini-expand:hover {
+  color: #fff;
+}
