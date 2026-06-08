@@ -30,10 +30,6 @@ pub fn run() {
               commands::execute(app, commands::PlaybackCommand::Next);
             } else if key.matches(Modifiers::empty(), Code::MediaTrackPrevious) {
               commands::execute(app, commands::PlaybackCommand::Previous);
-            } else if key.matches(Modifiers::META, Code::KeyK)
-              || key.matches(Modifiers::CONTROL, Code::KeyK)
-            {
-              palette::open(app);
             }
           }
         })
@@ -81,9 +77,17 @@ pub fn run() {
       let quit =
         MenuItem::with_id(app, "quit", "Quit YT Music", true, None::<&str>)?;
 
+      let palette_item = MenuItem::with_id(
+        app,
+        "command_palette",
+        "Command Palette",
+        true,
+        Some("CmdOrCtrl+K"),
+      )?;
+
       let menu = Menu::with_items(
         app,
-        &[&play_pause, &next, &previous, &separator, &toggle_mini, &separator2, &quit],
+        &[&play_pause, &next, &previous, &separator, &toggle_mini, &palette_item, &separator2, &quit],
       )?;
 
       TrayIconBuilder::new().menu(&menu).build(app)?;
@@ -97,17 +101,6 @@ pub fn run() {
       for shortcut in &media_shortcuts {
         if let Err(e) = app.global_shortcut().register(shortcut.clone()) {
           log::warn!("failed to register shortcut {shortcut}: {e}");
-        }
-      }
-
-      let palette_shortcuts = [
-        Shortcut::new(Some(Modifiers::META), Code::KeyK),
-        Shortcut::new(Some(Modifiers::CONTROL), Code::KeyK),
-      ];
-
-      for shortcut in &palette_shortcuts {
-        if let Err(e) = app.global_shortcut().register(shortcut.clone()) {
-          log::warn!("failed to register command palette shortcut: {e}");
         }
       }
 
@@ -131,6 +124,7 @@ pub fn run() {
         "next" => commands::execute(app, commands::PlaybackCommand::Next),
         "previous" => commands::execute(app, commands::PlaybackCommand::Previous),
         "mini_player" => mini_player::create_or_toggle(app),
+        "command_palette" => palette::open(app),
         "quit" => app.exit(0),
         _ => {}
       }
