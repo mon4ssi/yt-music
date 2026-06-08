@@ -38,3 +38,17 @@ pub fn execute(app: &tauri::AppHandle, cmd: PlaybackCommand) {
     log::warn!("yt-music: main window not found");
   }
 }
+
+pub fn navigate_to(app: &tauri::AppHandle, page: &str) {
+  let js = match page {
+    "home" => r#"(function(){var e=document.querySelector('a[href="/"], a[title="Home"], tp-yt-paper-item[aria-label="Home"]');if(e){e.click()}else{console.warn('yt-music: home nav not found')}})()"#,
+    "explore" => r#"(function(){var e=document.querySelector('a[href="/explore"], a[title="Explore"], tp-yt-paper-item[aria-label="Explore"]');if(e){e.click()}else{console.warn('yt-music: explore nav not found')}})()"#,
+    "library" => r#"(function(){var e=document.querySelector('a[href="/library"], a[title="Library"], tp-yt-paper-item[aria-label="Library"]');if(e){e.click()}else{console.warn('yt-music: library nav not found')}})()"#,
+    _ => return,
+  };
+  if let Some(window) = app.get_webview_window("main") {
+    if let Err(e) = window.eval(js) {
+      log::warn!("yt-music: navigate_to eval failed: {e:?}");
+    }
+  }
+}

@@ -1,5 +1,6 @@
 mod commands;
 mod mini_player;
+mod palette;
 mod playback;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -29,6 +30,10 @@ pub fn run() {
               commands::execute(app, commands::PlaybackCommand::Next);
             } else if key.matches(Modifiers::empty(), Code::MediaTrackPrevious) {
               commands::execute(app, commands::PlaybackCommand::Previous);
+            } else if key.matches(Modifiers::META, Code::KeyK)
+              || key.matches(Modifiers::CONTROL, Code::KeyK)
+            {
+              palette::open(app);
             }
           }
         })
@@ -45,7 +50,9 @@ pub fn run() {
       toggle_playback,
       next_track,
       previous_track,
-      focus_main_window
+      focus_main_window,
+      toggle_mini_player,
+      navigate_to
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -89,6 +96,17 @@ pub fn run() {
       for shortcut in &media_shortcuts {
         if let Err(e) = app.global_shortcut().register(shortcut.clone()) {
           log::warn!("failed to register shortcut {shortcut}: {e}");
+        }
+      }
+
+      let palette_shortcuts = [
+        Shortcut::new(Some(Modifiers::META), Code::KeyK),
+        Shortcut::new(Some(Modifiers::CONTROL), Code::KeyK),
+      ];
+
+      for shortcut in &palette_shortcuts {
+        if let Err(e) = app.global_shortcut().register(shortcut.clone()) {
+          log::warn!("failed to register command palette shortcut: {e}");
         }
       }
 
@@ -144,4 +162,14 @@ fn focus_main_window(app: tauri::AppHandle) {
     let _ = window.set_focus();
   }
   mini_player::close(&app);
+}
+
+#[tauri::command]
+fn toggle_mini_player(app: tauri::AppHandle) {
+  mini_player::create_or_toggle(&app);
+}
+
+#[tauri::command]
+fn navigate_to(app: tauri::AppHandle, page: String) {
+  commands::navigate_to(&app, &page);
 }

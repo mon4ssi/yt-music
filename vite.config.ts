@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         'mini-player': resolve(__dirname, 'mini-player.html'),
+        'command-palette': resolve(__dirname, 'command-palette.html'),
       },
     },
   },
