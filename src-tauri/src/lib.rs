@@ -1,3 +1,4 @@
+mod commands;
 mod playback;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -16,17 +17,17 @@ pub fn run() {
     )
     .plugin(
       tauri_plugin_global_shortcut::Builder::new()
-        .with_handler(move |_app, shortcut, event| {
+        .with_handler(move |app, shortcut, event| {
           if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
             let key = shortcut;
             if key.matches(Modifiers::empty(), Code::MediaPlay)
               || key.matches(Modifiers::empty(), Code::MediaPause)
             {
-              log::info!("media play/pause");
+              commands::execute(app, commands::PlaybackCommand::PlayPause);
             } else if key.matches(Modifiers::empty(), Code::MediaTrackNext) {
-              log::info!("media next");
+              commands::execute(app, commands::PlaybackCommand::Next);
             } else if key.matches(Modifiers::empty(), Code::MediaTrackPrevious) {
-              log::info!("media previous");
+              commands::execute(app, commands::PlaybackCommand::Previous);
             }
           }
         })
@@ -88,9 +89,9 @@ pub fn run() {
     })
     .on_menu_event(|app, event| {
       match event.id().as_ref() {
-        "play_pause" => log::info!("tray play/pause"),
-        "next" => log::info!("tray next"),
-        "previous" => log::info!("tray previous"),
+        "play_pause" => commands::execute(app, commands::PlaybackCommand::PlayPause),
+        "next" => commands::execute(app, commands::PlaybackCommand::Next),
+        "previous" => commands::execute(app, commands::PlaybackCommand::Previous),
         "quit" => app.exit(0),
         _ => {}
       }
