@@ -1,3 +1,4 @@
+mod bridge_health;
 mod commands;
 mod mini_player;
 mod palette;
@@ -49,6 +50,8 @@ pub fn run() {
     .plugin(tauri_plugin_store::Builder::default().build())
     .invoke_handler(tauri::generate_handler![
       playback::update_playback_state,
+      bridge_health::heartbeat,
+      bridge_health::get_bridge_health,
       toggle_playback,
       next_track,
       previous_track,
@@ -60,6 +63,8 @@ pub fn run() {
       toggle_theme
     ])
     .setup(|app| {
+      app.manage(std::sync::Mutex::new(bridge_health::BridgeHealthState::new()));
+
       if cfg!(debug_assertions) {
         app.handle().plugin(
           tauri_plugin_log::Builder::default()
@@ -126,6 +131,8 @@ pub fn run() {
           }
         }
       });
+
+      bridge_health::start_watchdog(app.handle().clone(), playback::CONTENT_SCRIPT);
 
       Ok(())
     })

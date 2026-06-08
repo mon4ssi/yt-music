@@ -8,3 +8,10 @@ export interface PlaybackState {
   currentTime: number
   volume: number
 }
+
+export interface BridgeHealth {
+  status: string
+  lastHeartbeatMsAgo: number
+  totalHeartbeats: number
+  recoveryAttempts: number
+}
