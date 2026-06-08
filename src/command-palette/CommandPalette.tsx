@@ -41,24 +41,37 @@ function CommandPalette() {
     [close],
   )
 
+  const closeRef = useRef(close)
+  const runRef = useRef(run)
+  const filteredRef = useRef(filtered)
+  const selectedIdxRef = useRef(selectedIdx)
+  useEffect(() => {
+    closeRef.current = close
+    runRef.current = run
+    filteredRef.current = filtered
+    selectedIdxRef.current = selectedIdx
+  })
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        close()
+        closeRef.current()
       } else if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setSelectedIdx((i) => Math.min(i + 1, filtered.length - 1))
+        setSelectedIdx((i) => Math.min(i + 1, filteredRef.current.length - 1))
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setSelectedIdx((i) => Math.max(i - 1, 0))
       } else if (e.key === 'Enter') {
         e.preventDefault()
-        if (filtered[selectedIdx]) run(filtered[selectedIdx])
+        const idx = selectedIdxRef.current
+        const items = filteredRef.current
+        if (items[idx]) runRef.current(items[idx])
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [close, filtered, selectedIdx, run])
+  }, [])
 
   useEffect(() => {
     inputRef.current?.focus()
