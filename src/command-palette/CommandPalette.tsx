@@ -14,6 +14,7 @@ const ACTIONS: Action[] = [
   { id: 'next', label: 'Next Track', icon: '⏭', invokeCmd: 'next_track' },
   { id: 'previous', label: 'Previous Track', icon: '⏮', invokeCmd: 'previous_track' },
   { id: 'mini_player', label: 'Toggle Mini-Player', icon: '🎛', invokeCmd: 'toggle_mini_player' },
+  { id: 'toggle_theme', label: 'Toggle Theme', icon: '🌗', invokeCmd: 'toggle_theme' },
   { id: 'home', label: 'Go to Home', icon: '🏠', invokeCmd: 'navigate_to', invokeArgs: { page: 'home' } },
   { id: 'explore', label: 'Go to Explore', icon: '🔍', invokeCmd: 'navigate_to', invokeArgs: { page: 'explore' } },
   { id: 'library', label: 'Go to Library', icon: '📚', invokeCmd: 'navigate_to', invokeArgs: { page: 'library' } },
