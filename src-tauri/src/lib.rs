@@ -5,8 +5,10 @@ mod playback;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut};
+
+const SETTINGS_FILE: &str = "settings.json";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -53,7 +55,9 @@ pub fn run() {
       focus_main_window,
       toggle_mini_player,
       navigate_to,
-      close_palette
+      close_palette,
+      get_theme,
+      toggle_theme
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -180,4 +184,29 @@ fn close_palette(app: tauri::AppHandle) {
   if let Some(window) = app.get_webview_window("command-palette") {
     let _ = window.close();
   }
+}
+
+#[tauri::command]
+fn get_theme(app: tauri::AppHandle) -> Result<String, String> {
+  use tauri_plugin_store::StoreExt;
+  let store = app.store(SETTINGS_FILE).map_err(|e| e.to_string())?;
+  Ok(store
+    .get("theme")
+    .and_then(|v| v.as_str().map(ToString::to_string))
+    .unwrap_or_default())
+}
+
+#[tauri::command]
+fn toggle_theme(app: tauri::AppHandle) -> Result<(), String> {
+  use tauri_plugin_store::StoreExt;
+  let store = app.store(SETTINGS_FILE).map_err(|e| e.to_string())?;
+  let current = store
+    .get("theme")
+    .and_then(|v| v.as_str().map(ToString::to_string))
+    .unwrap_or_else(|| "light".to_string());
+  let next = if current == "light" { "dark" } else { "light" };
+  store.set("theme", next);
+  store.save().map_err(|e| e.to_string())?;
+  app.emit("theme-changed", next).map_err(|e| e.to_string())?;
+  Ok(())
 }
