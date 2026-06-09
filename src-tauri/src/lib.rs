@@ -1,5 +1,6 @@
 mod bridge_health;
 mod commands;
+mod diagnostics;
 mod mini_player;
 mod palette;
 mod playback;
@@ -52,6 +53,11 @@ pub fn run() {
       playback::update_playback_state,
       bridge_health::heartbeat,
       bridge_health::get_bridge_health,
+      diagnostics::record_event,
+      diagnostics::get_telemetry_enabled,
+      diagnostics::set_telemetry_enabled,
+      diagnostics::toggle_telemetry,
+      diagnostics::export_diagnostics,
       toggle_playback,
       next_track,
       previous_track,
@@ -63,7 +69,9 @@ pub fn run() {
       toggle_theme
     ])
     .setup(|app| {
+      diagnostics::install_panic_hook();
       app.manage(std::sync::Mutex::new(bridge_health::BridgeHealthState::new()));
+      app.manage(std::sync::Mutex::new(diagnostics::DiagnosticsState::new()));
 
       let user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36";
       let main_url = "https://music.youtube.com".parse::<url::Url>().expect("invalid URL");
@@ -79,6 +87,7 @@ pub fn run() {
         .build()
       {
         log::warn!("failed to create main window: {e}");
+        diagnostics::record(app.handle(), "error", &format!("failed to create main window: {e}"), "setup::main_window");
       }
 
       if cfg!(debug_assertions) {
@@ -122,6 +131,7 @@ pub fn run() {
       for shortcut in &media_shortcuts {
         if let Err(e) = app.global_shortcut().register(shortcut.clone()) {
           log::warn!("failed to register shortcut {shortcut}: {e}");
+          diagnostics::record(app.handle(), "warn", &format!("failed to register shortcut {shortcut}: {e}"), "setup::media_shortcuts");
         }
       }
 
@@ -133,15 +143,18 @@ pub fn run() {
       for shortcut in &palette_shortcuts {
         if let Err(e) = app.global_shortcut().register(shortcut.clone()) {
           log::warn!("failed to register command palette shortcut: {e}");
+          diagnostics::record(app.handle(), "warn", &format!("failed to register command palette shortcut: {e}"), "setup::palette_shortcuts");
         }
       }
 
       let handle = app.handle().clone();
+      let diag_handle = app.handle().clone();
       std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_secs(5));
         if let Some(window) = handle.get_webview_window("main") {
           if let Err(e) = window.eval(playback::CONTENT_SCRIPT) {
             log::warn!("failed to inject playback script: {e}");
+            diagnostics::record(&diag_handle, "error", &format!("failed to inject playback script: {e}"), "setup::content_script");
           } else {
             log::info!("playback content script injected");
           }

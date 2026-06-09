@@ -27,6 +27,7 @@ pub fn create_or_toggle(app: &tauri::AppHandle) {
 
   if let Err(e) = builder.build() {
     log::warn!("failed to create mini-player window: {e:?}");
+    crate::diagnostics::record(app, "error", &format!("failed to create mini-player window: {e:?}"), "mini_player::create_or_toggle");
   }
 }
 

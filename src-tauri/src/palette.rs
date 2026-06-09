@@ -23,5 +23,6 @@ pub fn open(app: &tauri::AppHandle) {
 
   if let Err(e) = builder.build() {
     log::warn!("failed to create command palette window: {e:?}");
+    crate::diagnostics::record(app, "error", &format!("failed to create command palette window: {e:?}"), "palette::open");
   }
 }

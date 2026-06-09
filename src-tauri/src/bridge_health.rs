@@ -109,6 +109,7 @@ pub fn start_watchdog(app: AppHandle, content_script: &'static str) {
 
             if should_recover {
                 log::warn!("bridge watchdog: heartbeat stale, attempting recovery");
+                crate::diagnostics::record(&app, "warn", "heartbeat stale, attempting recovery", "bridge_health::watchdog");
 
                 {
                     let state = app.state::<Mutex<BridgeHealthState>>();
@@ -119,8 +120,10 @@ pub fn start_watchdog(app: AppHandle, content_script: &'static str) {
                 if let Some(window) = app.get_webview_window("main") {
                     if let Err(e) = window.eval(content_script) {
                         log::warn!("bridge recovery: injection failed: {e}");
+                        crate::diagnostics::record(&app, "error", &format!("bridge recovery injection failed: {e}"), "bridge_health::watchdog");
                     } else {
                         log::info!("bridge recovery: content script re-injected");
+                        crate::diagnostics::record(&app, "info", "content script re-injected", "bridge_health::watchdog");
                     }
                 }
             }
