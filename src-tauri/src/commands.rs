@@ -1,5 +1,6 @@
 use tauri::Manager;
 
+#[derive(Debug)]
 pub enum PlaybackCommand {
   PlayPause,
   Next,
@@ -33,9 +34,11 @@ pub fn execute(app: &tauri::AppHandle, cmd: PlaybackCommand) {
   if let Some(window) = app.get_webview_window("main") {
     if let Err(e) = window.eval(&js) {
       log::warn!("yt-music: command eval failed: {e:?}");
+      crate::diagnostics::record(app, "error", &format!("command eval failed for {:?}: {e:?}", cmd), "commands::execute");
     }
   } else {
     log::warn!("yt-music: main window not found");
+    crate::diagnostics::record(app, "warn", "main window not found for command execution", "commands::execute");
   }
 }
 
@@ -49,6 +52,7 @@ pub fn navigate_to(app: &tauri::AppHandle, page: &str) {
   if let Some(window) = app.get_webview_window("main") {
     if let Err(e) = window.eval(js) {
       log::warn!("yt-music: navigate_to eval failed: {e:?}");
+      crate::diagnostics::record(app, "error", &format!("navigate_to eval failed: {e:?}"), "commands::navigate_to");
     }
   }
 }

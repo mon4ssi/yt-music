@@ -15,3 +15,10 @@ export interface BridgeHealth {
   totalHeartbeats: number
   recoveryAttempts: number
 }
+
+export interface DiagnosticsEntry {
+  timestamp: string
+  level: string
+  message: string
+  location: string
+}

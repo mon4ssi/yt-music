@@ -6,8 +6,9 @@ interface Action {
   id: string
   label: string
   icon: string
-  invokeCmd: string
+  invokeCmd?: string
   invokeArgs?: Record<string, string>
+  handler?: () => Promise<void>
 }
 
 const ACTIONS: Action[] = [
@@ -16,6 +17,11 @@ const ACTIONS: Action[] = [
   { id: 'previous', label: 'Previous Track', icon: '⏮', invokeCmd: 'previous_track' },
   { id: 'mini_player', label: 'Toggle Mini-Player', icon: '🎛', invokeCmd: 'toggle_mini_player' },
   { id: 'toggle_theme', label: 'Toggle Theme', icon: '🌗', invokeCmd: 'toggle_theme' },
+  { id: 'toggle_telemetry', label: 'Toggle Telemetry', icon: '📡', invokeCmd: 'toggle_telemetry' },
+  { id: 'export_diagnostics', label: 'Export Diagnostics', icon: '📋', handler: async () => {
+    const json = await invoke<string>('export_diagnostics')
+    await navigator.clipboard.writeText(json)
+  }},
   { id: 'home', label: 'Go to Home', icon: '🏠', invokeCmd: 'navigate_to', invokeArgs: { page: 'home' } },
   { id: 'explore', label: 'Go to Explore', icon: '🔍', invokeCmd: 'navigate_to', invokeArgs: { page: 'explore' } },
   { id: 'library', label: 'Go to Library', icon: '📚', invokeCmd: 'navigate_to', invokeArgs: { page: 'library' } },
@@ -46,7 +52,11 @@ function CommandPalette() {
 
   const run = useCallback(
     (action: Action) => {
-      invoke(action.invokeCmd, action.invokeArgs ?? {}).catch(console.error)
+      if (action.handler) {
+        action.handler().catch(console.error)
+      } else if (action.invokeCmd) {
+        invoke(action.invokeCmd, action.invokeArgs ?? {}).catch(console.error)
+      }
       close()
     },
     [close],
