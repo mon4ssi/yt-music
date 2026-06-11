@@ -32,19 +32,45 @@ function CommandPalette() {
   const [query, setQuery] = useState('')
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [health, setHealth] = useState<BridgeHealth | null>(null)
+  const [channel, setChannel] = useState('stable')
 
   useEffect(() => {
     invoke<BridgeHealth>('get_bridge_health').then(setHealth).catch(console.error)
+    invoke<string>('get_update_channel').then(setChannel).catch(console.error)
   }, [])
 
   const healthColor = health
     ? health.status === 'healthy' ? 'var(--health-ok)' : health.status === 'starting' ? 'var(--health-warn)' : 'var(--health-err)'
     : 'var(--health-warn)'
 
-  const filtered = useMemo(
-    () => ACTIONS.filter((a) => a.label.toLowerCase().includes(query.toLowerCase())),
-    [query],
-  )
+  const filtered = useMemo(() => {
+    const channelAction: Action = {
+      id: 'toggle_channel',
+      label: channel === 'stable' ? 'Switch to Beta Channel' : 'Switch to Stable Channel',
+      icon: '📦',
+      handler: async () => {
+        const next = channel === 'stable' ? 'beta' : 'stable'
+        await invoke('set_update_channel', { channel: next })
+        setChannel(next)
+      },
+    }
+
+    const checkAction: Action = {
+      id: 'check_updates',
+      label: 'Check for Updates',
+      icon: '🔄',
+      handler: async () => {
+        const result = await invoke<{ available: boolean; version?: string; body?: string }>('check_for_updates')
+        if (result.available) {
+          alert(`Update available: ${result.version}`)
+        } else {
+          alert('No updates available')
+        }
+      },
+    }
+
+    return [...ACTIONS, channelAction, checkAction].filter((a) => a.label.toLowerCase().includes(query.toLowerCase()))
+  }, [query, channel])
 
   const close = useCallback(() => {
     invoke('close_palette').catch(console.error)

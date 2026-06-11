@@ -4,6 +4,7 @@ mod diagnostics;
 mod mini_player;
 mod palette;
 mod playback;
+mod updater;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
@@ -43,6 +44,7 @@ pub fn run() {
         })
         .build(),
     )
+    .plugin(tauri_plugin_updater::Builder::default().build())
     .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_autostart::init(
       tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -66,7 +68,10 @@ pub fn run() {
       navigate_to,
       close_palette,
       get_theme,
-      toggle_theme
+      toggle_theme,
+      updater::get_update_channel,
+      updater::set_update_channel,
+      updater::check_for_updates
     ])
     .setup(|app| {
       diagnostics::install_panic_hook();
