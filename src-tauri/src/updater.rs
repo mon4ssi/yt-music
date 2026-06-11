@@ -5,9 +5,55 @@ use tauri_plugin_updater::UpdaterExt;
 
 const SETTINGS_FILE: &str = "settings.json";
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn channel_endpoints_stable() {
+        let urls = channel_endpoints("stable");
+        assert_eq!(urls.len(), 1);
+        let url_str = urls[0].as_str();
+        assert!(url_str.contains("/stable/update.json"), "expected /stable/update.json in URL, got {url_str}");
+    }
+
+    #[test]
+    fn channel_endpoints_beta() {
+        let urls = channel_endpoints("beta");
+        assert_eq!(urls.len(), 1);
+        let url_str = urls[0].as_str();
+        assert!(url_str.contains("/beta/update.json"), "expected /beta/update.json in URL, got {url_str}");
+    }
+
+    #[test]
+    fn update_info_serialization() {
+        let info = UpdateInfo {
+            available: true,
+            version: Some("1.0.0".into()),
+            body: Some("Release notes".into()),
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        assert!(json.contains("\"available\":true"));
+        assert!(json.contains("\"version\":\"1.0.0\""));
+        assert!(json.contains("\"body\":\"Release notes\""));
+    }
+
+    #[test]
+    fn update_info_no_update() {
+        let info = UpdateInfo {
+            available: false,
+            version: None,
+            body: None,
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        assert!(json.contains("\"available\":false"));
+        assert!(!json.contains("\"version\""));
+    }
+}
+
 fn channel_endpoints(channel: &str) -> Vec<url::Url> {
     let base = format!(
-        "https://releases.mon4ssi.com/yt-music/{channel}/{{target}}-{{arch}}/{{current_version}}",
+        "https://releases.mon4ssi.com/yt-music/{channel}/update.json",
     );
     vec![url::Url::parse(&base).expect("invalid updater endpoint URL")]
 }
@@ -15,7 +61,9 @@ fn channel_endpoints(channel: &str) -> Vec<url::Url> {
 #[derive(Serialize)]
 pub struct UpdateInfo {
     pub available: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub body: Option<String>,
 }
 

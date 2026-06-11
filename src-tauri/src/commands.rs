@@ -5,8 +5,6 @@ pub enum PlaybackCommand {
   PlayPause,
   Next,
   Previous,
-  #[allow(dead_code)]
-  Seek(f64),
 }
 
 fn js_for(cmd: &PlaybackCommand) -> String {
@@ -19,12 +17,6 @@ fn js_for(cmd: &PlaybackCommand) -> String {
     }
     PlaybackCommand::Previous => {
       r#"(function(){var e=document.querySelector('.ytmusic-player-bar .previous-button, #previous-button, ytmusic-previous-button');if(e){e.click()}else{console.warn('yt-music: previous not found')}})()"#.into()
-    }
-    PlaybackCommand::Seek(t) => {
-      format!(
-        r#"(function(){{var v=document.querySelector('video');if(v){{v.currentTime={t}}}else{{console.warn('yt-music: seek video not found')}}}})()"#,
-        t = t
-      )
     }
   }
 }
