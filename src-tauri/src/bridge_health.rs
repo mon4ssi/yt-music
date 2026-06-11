@@ -94,6 +94,104 @@ pub fn get_bridge_health(
     state.lock().unwrap().report()
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn fresh_state_is_starting() {
+        let state = BridgeHealthState::new();
+        let report = state.report();
+        assert_eq!(report.status, "starting");
+        assert_eq!(report.total_heartbeats, 0);
+        assert_eq!(report.recovery_attempts, 0);
+    }
+
+    #[test]
+    fn heartbeat_makes_state_healthy() {
+        let mut state = BridgeHealthState::new();
+        state.record_heartbeat();
+        let report = state.report();
+        assert_eq!(report.status, "healthy");
+        assert_eq!(report.total_heartbeats, 1);
+    }
+
+    #[test]
+    fn state_becomes_degraded_after_stale() {
+        let mut state = BridgeHealthState::new();
+        state.record_heartbeat();
+        // Simulate time passing beyond stale threshold
+        state.last_heartbeat = Some(Instant::now() - Duration::from_secs(STALE_THRESHOLD_SECS + 2));
+        let report = state.report();
+        assert_eq!(report.status, "degraded");
+    }
+
+    #[test]
+    fn state_is_dead_if_no_heartbeat_long_enough() {
+        let state = BridgeHealthState {
+            startup: Instant::now() - Duration::from_secs(STALE_THRESHOLD_SECS + 10),
+            last_heartbeat: None,
+            total_heartbeats: 0,
+            recovery_attempts: 0,
+            last_recovery: None,
+        };
+        let report = state.report();
+        assert_eq!(report.status, "dead");
+    }
+
+    #[test]
+    fn should_recover_false_when_bridge_healthy() {
+        let mut state = BridgeHealthState::new();
+        state.record_heartbeat();
+        assert!(!state.should_recover());
+    }
+
+    #[test]
+    fn should_recover_true_when_bridge_dead_and_cooldown_ok() {
+        let mut state = BridgeHealthState::new();
+        // Simulate startup far in the past (no heartbeat ever received)
+        state.startup = Instant::now() - Duration::from_secs(STALE_THRESHOLD_SECS + 10);
+        assert!(state.should_recover());
+    }
+
+    #[test]
+    fn should_recover_false_at_max_attempts() {
+        let mut state = BridgeHealthState::new();
+        state.recovery_attempts = MAX_RECOVERY_ATTEMPTS;
+        state.startup = Instant::now() - Duration::from_secs(STALE_THRESHOLD_SECS + 10);
+        assert!(!state.should_recover());
+    }
+
+    #[test]
+    fn record_recovery_increments_attempts() {
+        let mut state = BridgeHealthState::new();
+        assert_eq!(state.recovery_attempts, 0);
+        state.record_recovery();
+        assert_eq!(state.recovery_attempts, 1);
+        assert!(state.last_recovery.is_some());
+    }
+
+    #[test]
+    fn multiple_heartbeats_counted() {
+        let mut state = BridgeHealthState::new();
+        for _ in 0..5 {
+            state.record_heartbeat();
+        }
+        assert_eq!(state.total_heartbeats, 5);
+        assert!(state.last_heartbeat.is_some());
+    }
+
+    #[test]
+    fn exponential_backoff_delays_recovery() {
+        let mut state = BridgeHealthState::new();
+        state.startup = Instant::now() - Duration::from_secs(STALE_THRESHOLD_SECS + 10);
+        state.record_recovery(); // attempt 1, cooldown = 30s
+        // Immediately checking should return false (cooldown not elapsed)
+        assert!(!state.should_recover());
+    }
+}
+
 pub fn start_watchdog(app: AppHandle, content_script: &'static str) {
     std::thread::spawn(move || {
         std::thread::sleep(std::time::Duration::from_secs(12));
